@@ -3,6 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@vx/axis": "0.0.162",
+    "@vx/gradient": "0.0.161",
+    "@vx/group": "0.0.161",
+    "@vx/scale": "0.0.161",
+    "@vx/shape": "0.0.162",
     "lodash": "^4.17.10",
     "lodash-es": "^4.17.10",
     "nivo": "^0.31.0",
