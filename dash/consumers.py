@@ -21,7 +21,7 @@ class EventsFrequencyConsumer(AsyncWebsocketConsumer):
 
 
     def compute_avegate(self, at):
-        return Event.objects.filter(eventclass=self.eventclass,
+        return Event.objects.filter(eventclass__label=self.eventclass,
                                     timestamp__gte=at - timedelta(seconds=self.frequency)).count() / self.frequency
         
     async def produce_values(self):        

@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 
 import './App.css';
 
+import axios from 'axios';
 
 import { AreaClosed } from '@vx/shape';
 import { Group } from '@vx/group';
@@ -25,14 +26,17 @@ class SimpleIndicator extends Component {
   }
 }
 
-class RequestsIndicator extends Component {
+
+
+
+class EventIndicator extends Component {
   constructor (props) {
     super(props);
     this.state = {value : 0, data : []};
     this.socket = new WebSocket(
       //      'ws://' + window.location.host +
          'ws://localhost:8000' +
-        '/ws/events/http_request/' + this.props.updateEvery +'/');
+        '/ws/events/'+this.props.eventclass+'/' + this.props.updateEvery +'/');
     this.socket.onmessage = this.handleMessage.bind(this);
   }
   handleMessage (message) {
@@ -46,6 +50,7 @@ class RequestsIndicator extends Component {
                                  }])}));
   }
   render() {
+    const title = this.props.title+'/second';
     const width = 500;
     const height = 200;
     const margin = {
@@ -100,20 +105,42 @@ class RequestsIndicator extends Component {
                />
           </Group>
         </svg>
-        <SimpleIndicator title="Requests/second" value={this.state.value}/>
+        <SimpleIndicator title={title} value={this.state.value}/>
       </div>
     );
   }
 }
 
-class App extends Component {
+class Dashboard extends Component {
+  constructor (props) {
+    super(props);
+    this.state = {'eventclasses':[]};
+    
+  }
+  componentDidMount () {
+    axios.get('/dash/eventclasses.json')
+      .then(response => {
+        console.log(response);
+        const ecs = [];
+        for (let i=0, l=response.data.length; i<l; i++){
+          ecs.push(response.data[i]); //TODO
+        }
+        this.setState({'eventclasses' : ecs});
+      });
+  }
+  
   render() {
+    const indicators = [];
+    const ecs = this.state.eventclasses;
+    for (let i=0; i<ecs.length; i++){
+      indicators.push(<EventIndicator updateEvery={1} showPrevious={30} title={ecs[i].name} eventclass={ecs[i].label}/>);
+    }
     return (
-      <div className="App">
-        <RequestsIndicator updateEvery={1} showPrevious={30}/>
+      <div className="dashboard">
+        {indicators}
       </div>
     );
   }
 }
 
-export default App;
+export default Dashboard;
