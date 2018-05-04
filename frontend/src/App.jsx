@@ -27,30 +27,8 @@ class SimpleIndicator extends Component {
 }
 
 
-
-
-class EventIndicator extends Component {
-  constructor (props) {
-    super(props);
-    this.state = {value : 0, data : []};
-    this.socket = new WebSocket(
-      //      'ws://' + window.location.host +
-         'ws://localhost:8000' +
-        '/ws/events/'+this.props.eventclass+'/' + this.props.updateEvery +'/');
-    this.socket.onmessage = this.handleMessage.bind(this);
-  }
-  handleMessage (message) {
-    const val = JSON.parse(message.data);
-    const dataPoints = this.props.showPrevious / this.props.updateEvery;
-    
-    this.setState(prevState => ({value : val.average,
-                                 data : prevState.data.slice(prevState.data.length - dataPoints, prevState.data.length).concat([{
-                                   'timestamp' : new Date(val.timestamp * 1000),//.toUTCString(),
-                                   'value' : val.average
-                                 }])}));
-  }
+class IndicatorWithHistory extends Component {
   render() {
-    const title = this.props.title+'/second';
     const width = 500;
     const height = 200;
     const margin = {
@@ -65,11 +43,11 @@ class EventIndicator extends Component {
     const y = d => d.value;
     const xScale = scaleTime({
       range: [0, xMax],
-      domain: extent(this.state.data, x)
+      domain: extent(this.props.history, x)
     });
     const yScale = scaleLinear({
       range: [yMax, 0],
-      domain: [0, max(this.state.data, y)],
+      domain: [0, max(this.props.history, y)],
     });
     return (
       <div className="metric-with-history">
@@ -95,7 +73,7 @@ class EventIndicator extends Component {
                id='gradient'
                />            
             <AreaClosed
-               data={this.state.data}
+               data={this.props.history}
                xScale={xScale}
                yScale={yScale}
                x={x}
@@ -105,16 +83,72 @@ class EventIndicator extends Component {
                />
           </Group>
         </svg>
-        <SimpleIndicator title={title} value={this.state.value}/>
+        <SimpleIndicator title={this.props.title} value={this.props.value}/>
       </div>
+    );
+  }  
+}
+
+class EventIndicator extends Component {
+  constructor (props) {
+    super(props);
+    this.state = {value : 0, data : []};
+    this.socket = new WebSocket(
+      //      'ws://' + window.location.host +
+         'ws://localhost:8000' +
+        '/ws/events/'+this.props.eventclass+'/' + this.props.updateEvery +'/');
+    this.socket.onmessage = this.handleMessage.bind(this);
+  }
+  handleMessage (message) {
+    const val = JSON.parse(message.data);
+    const dataPoints = this.props.showPrevious / this.props.updateEvery;
+    
+    this.setState(prevState => ({value : val.average,
+                                 data : prevState.data.slice(prevState.data.length - dataPoints, prevState.data.length).concat([{
+                                   'timestamp' : new Date(val.timestamp * 1000),//.toUTCString(),
+                                   'value' : val.average
+                                 }])}));
+  }
+  render() {
+    const title=this.props.title+'/second';
+    return (      
+        <IndicatorWithHistory title={title} history={this.state.data} value={this.state.value}/>
     );
   }
 }
 
+class MetricIndicator extends Component {
+  constructor (props) {
+    super(props);
+    this.state = {value : 0, data : []};
+    this.socket = new WebSocket(
+      //      'ws://' + window.location.host +
+         'ws://localhost:8000' +
+        '/ws/metrics/'+this.props.label+'/' + this.props.updateEvery +'/');
+    this.socket.onmessage = this.handleMessage.bind(this);
+  }
+  handleMessage (message) {
+    const val = JSON.parse(message.data);
+    const dataPoints = this.props.showPrevious / this.props.updateEvery;
+    
+    this.setState(prevState => ({value : val.value,
+                                 data : prevState.data.slice(prevState.data.length - dataPoints, prevState.data.length).concat([{
+                                   'timestamp' : new Date(val.timestamp * 1000),//.toUTCString(),
+                                   'value' : val.value
+                                 }])}));
+  }
+  render() {
+    return (      
+        <IndicatorWithHistory title={this.props.title} history={this.state.data} value={this.state.value}/>
+    );
+  }
+}
+
+
 class Dashboard extends Component {
   constructor (props) {
     super(props);
-    this.state = {'eventclasses':[]};
+    this.state = {'eventclasses':[], 'metrics':[]};
     
   }
   componentDidMount () {
@@ -127,6 +161,16 @@ class Dashboard extends Component {
         }
         this.setState({'eventclasses' : ecs});
       });
+    axios.get('/dash/metrics.json')
+      .then(response => {
+        console.log(response);
+        const ms = [];
+        for (let i=0, l=response.data.length; i<l; i++){
+          ms.push(response.data[i]); //TODO
+        }
+        this.setState({'metrics' : ms});
+      });
+
   }
   
   render() {
@@ -135,6 +179,11 @@ class Dashboard extends Component {
     for (let i=0; i<ecs.length; i++){
       indicators.push(<EventIndicator updateEvery={1} showPrevious={30} title={ecs[i].name} eventclass={ecs[i].label}/>);
     }
+    const ms = this.state.metrics;
+    for (let i=0; i<ms.length; i++){
+      indicators.push(<MetricIndicator updateEvery={1} showPrevious={30} title={ms[i].name} label={ms[i].label}/>);
+    }
+    
     return (
       <div className="dashboard">
         {indicators}
