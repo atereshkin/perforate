@@ -3,7 +3,7 @@ from django.db import models
 
 class EventClass(models.Model):
     name = models.CharField(max_length=2048)
-    label = models.CharField(max_length=1024)
+    label = models.CharField(max_length=1024, unique=True)
     is_prolonged = models.BooleanField()
 
 class Event(models.Model):
@@ -23,7 +23,7 @@ class Tag(models.Model):
 
 class Metric(models.Model):
     name = models.CharField(max_length=2048)
-    label = models.CharField(max_length=1024)
+    label = models.CharField(max_length=1024, unique=True)
 
 
 class Measurement(models.Model):
