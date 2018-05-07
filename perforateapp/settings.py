@@ -52,7 +52,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'perforate.urls'
+ROOT_URLCONF = 'perforateapp.urls'
 
 TEMPLATES = [
     {
@@ -72,7 +72,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'perforate.wsgi.application'
+WSGI_APPLICATION = 'perforateapp.wsgi.application'
 
 
 # Database
@@ -128,7 +128,7 @@ STATICFILES_DIRS = [
   os.path.join(BASE_DIR, 'frontend/build'),
 ]
 
-ASGI_APPLICATION = "perforate.routing.application"
+ASGI_APPLICATION = "perforateapp.routing.application"
 
 try:
     from .settings_local import *

@@ -1,0 +1,36 @@
+syntax = "proto2";
+
+package perforate;
+
+message EventClass {
+  required string label = 1;
+  required string name = 2;
+  required bool is_prolonged = 3;
+  optional uint32 session_code = 4;
+}
+
+message Metric {
+  required string label = 1;
+  required string name = 2;
+  optional uint32 session_code = 4;
+}
+
+message Event {
+  required uint32 class_session_code = 1;
+  optional string value = 2;
+  optional float duration = 3;
+}
+
+message Measurement {
+  required uint32 metric_session_code = 1;
+  optional float value = 2;
+}
+
+message Message {
+  oneof content {
+    EventClass eventclass = 1;
+    Metric metric = 2;
+    Event event = 3;
+    Measurement measurement = 4;
+  }
+}

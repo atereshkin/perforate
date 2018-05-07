@@ -2,7 +2,7 @@ import time
 import random
 from threading import Thread
 
-from clientapi import perforate
+import perforate
 
 
 URLS = ('/',
@@ -22,7 +22,10 @@ def random_url():
 def main():
     random.seed()
 
+    
     p = perforate.Perforate()
+#    time.sleep(2)
+
     p.register_event_class('http_request', 'Http request', is_prolonged=True)
     p.register_event_class('sql_query', 'SQL query', is_prolonged=True)
     p.register_metric('job_queue_length', 'Jobs in queue')
